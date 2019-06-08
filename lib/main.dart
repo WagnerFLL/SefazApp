@@ -1,41 +1,42 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:search/API.dart';
+import 'package:search/models/Product.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  build(context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'My Http App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Sefaz'),
+      home: SearchPage(title: 'Search'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class SearchPage extends StatefulWidget {
+  SearchPage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _SearchPage createState() => _SearchPage();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _SearchPage extends State<SearchPage> {
 
-  void _incrementCounter() async{
-    setState(() {
-      _counter++;
-      List a;
-      getLocations("leite");
-    });
+  final TextEditingController searchControl = new TextEditingController();
+
+  void _nextPage(){
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MyListScreen(text: this.searchControl.text)),
+    );
   }
 
   @override
@@ -51,45 +52,86 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
 
           children: <Widget>[
+            Container(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.all(15),
+                child: TextField(
+                  keyboardType: TextInputType.text,
+                  controller: searchControl,
+                  decoration: InputDecoration(
+                    labelText: "Produto",
+                    hintText: "Leite"
+                  ),
+                ),
+              )
+            ),
+            Container(
+              alignment: Alignment.center,
+              child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                      onPressed: _nextPage,
+                      color: Colors.blue,
+                      child: Text("Pesquisar"),
+                      textColor: Colors.white,
+                  ),
+              ),
+            ),
             Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
 
-Future<List> getLocations(String desc) async{
-  String url = "http://api.sefaz.al.gov.br/sfz_nfce_api/api/public/consultarPrecosPorDescricao";
+class MyListScreen extends StatefulWidget {
+  MyListScreen({Key key, this.text}) : super(key: key);
 
-  Map<String, String> requestHeaders = {
-    'Content-type': 'application/json',
-    'Accept': 'application/json',
-    'AppToken':'ff0fa2af15bc02e0549a334799c9d611eed1ac5b'
-  };
+  final String text;
+  @override
+  createState() => _MyListScreenState(this.text);
+}
 
-  var requestBody = json.encode({
-    "descricao": desc,
-    "dias": 3,
-    "latitude": -9.573170,
-    "longitude": -35.737991,
-    "raio": 2
-  });
+class _MyListScreenState extends State {
+  var products = new List<Product>();
+  String  text;
+  _MyListScreenState(this. text);
 
-  http.Response response = await http.post(url, headers: requestHeaders, body: requestBody);
+  _getProducts(String desc) {
+    API.getProducts(desc).then((response) {
+      setState(() {
+        Iterable list = json.decode(response.body);
+        print(list);
+        products = list.map((model) => Product.fromJson(model)).toList();
+      });
+    });
 
-  if (response.statusCode == 200) {
-    print(json.decode(response.body));
+  }
+
+  initState() {
+    super.initState();
+    _getProducts(this.text);
+  }
+
+  dispose() {
+    super.dispose();
+  }
+
+  @override
+  build(context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Resultados"),
+        ),
+        body: ListView.builder(
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            return ListTile(title: Text(products[index].nomRazaoSocial));
+          },
+        ));
   }
 }
