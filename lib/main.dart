@@ -121,6 +121,25 @@ class _MyListScreenState extends State {
     super.dispose();
   }
 
+  Future<Null> _showDetail(num index) async {
+    switch(
+    await showDialog(
+        context: context,
+        child:  new SimpleDialog(
+          title: new Text(products[index].dscProduto),
+          children: <Widget>[
+            Container(
+              alignment: Alignment.center,
+              child: Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Text("R\$ " + products[index].valMinimoVendido.toString())
+              ),
+            )
+          ],
+        )
+    )) {}
+  }
+
   @override
   build(context) {
     return Scaffold(
@@ -130,7 +149,11 @@ class _MyListScreenState extends State {
         body: ListView.builder(
           itemCount: products.length,
           itemBuilder: (context, index) {
-            return ListTile(title: Text(products[index].nomRazaoSocial));
+            return ListTile(
+                title: Text(products[index].nomRazaoSocial),
+                subtitle: Text(products[index].valMinimoVendido.toString()),
+                onTap: () => _showDetail(index)
+            );
           },
         ));
   }
