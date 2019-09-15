@@ -17,7 +17,7 @@ class API {
       "descricao": desc,
       "dias": 3,
       "latitude": -9.573170,
-      "longitude": -35.737991,
+      "longitude": -35.738591,
       "raio": 2
     });
 
