@@ -16,7 +16,7 @@ class API {
     var requestBody = json.encode({
       "descricao": desc,
       "dias": 3,
-      "latitude": -9.573170,
+      "latitude": -9.571470,
       "longitude": -35.738591,
       "raio": 2
     });
